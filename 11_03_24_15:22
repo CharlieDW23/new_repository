@@ -1,0 +1,509 @@
+import tkinter as tk
+import pandas as pd
+from tkinter import *
+import tkinter.messagebox
+from tkinter.filedialog import askdirectory
+import os
+import pygame as pg
+import webbrowser
+root = tk.Tk()
+root.title("My Organizer")
+screen_width = 600
+screen_height = 600
+root.configure(bg='black')
+root.minsize(screen_width, screen_height)
+
+
+def clear_widgets(root):
+    """This function will destroy any widgets you created"""
+    for i in root.winfo_children():
+        i.destroy()
+
+
+# create the title page
+def create_titlepage(root):
+    clear_widgets(root)
+
+    # place the image
+    # add_image(root, 'images/image3.jpg', screen_width, screen_height)
+
+    # place a label that greets the user
+    greetings_label = tk.Label(root, text='Hi, welcome to your personal organizer!', font='Script 20', bg='white')
+    greetings_label.place(x=150, y=32)
+
+    # place a button that will end the application
+    kill_button = tk.Button(root, text='EXIT', font='SansSerif 15', bg='red', command=quit)
+    kill_button.place(x=100, y=540)
+
+    # place a button that launches the second page
+    second_page_button = tk.Button(root, text='Get started!', font='Script 15', bg='light green', command=lambda:create_second_page(root))
+    second_page_button.place(x=500, y=540)
+
+# create the homepage
+def create_second_page(root):
+    clear_widgets(root)
+
+    # place a title label
+    Title_label = tk.Label(root, text='My organizer', font='Script 20', bg='black', fg='white')
+    Title_label.place(x=50, y=20)
+
+    # place a button to return to the title page
+    return_button = tk.Button(root, text='back', font='Script 16', bg='light blue', fg='black', command=lambda:create_titlepage(root))
+    return_button.place(x=30, y=520)
+
+    # place a button for the diary page
+    diary_button = tk.Button(root, text='Diary', font='Script 16', bg='light green', fg='black', command=lambda:create_diary_page(root))
+    diary_button.place(x=50, y=150)
+
+    # place a button for the TO DO page
+    to_do_button = tk.Button(root, text='TO DO', font='Script 16', bg='yellow', fg='black', command=lambda: create_todo_page(root))
+    to_do_button.place(x=50, y=200)
+
+    # place a button for the focus page
+    focus_button = tk.Button(root, text='Focus', font='Script 16', bg='orange', fg='black', command=lambda: create_music_page(root))
+    focus_button.place(x=50, y=250)
+
+    # place a button for the Study Page
+    study_button = tk.Button(root, text='Study', font='Script 16', bg='pink', fg='black', command=lambda: create_study_page(root))
+    study_button.place(x=50, y=300)
+
+    # place a button for the Eating Tracker Page
+    food_tracker_button = tk.Button(root, text='Food Tracker', font='Script 16', bg='black', fg='white', command=lambda: create_eating_tracker_page(root))
+    food_tracker_button.place(x=50, y=350)
+
+# create a dictionary which will store all the input from the user from the text fields
+def store_user_data():
+    # write a dictionary that will store the data to be accessed later
+    user_data = {
+        "date": date.get(),
+        "diary_entry": diary_entry.get("1.0",'end-1c')
+    }
+
+    # convert the dictionary into a data frame
+    user_data_df = pd.DataFrame([user_data])
+    user_data_df.to_csv('Data/user_data_diary.csv', index=False, mode='a', header=False)
+
+# write a definition that allows us to access the data and display the data in a text field
+def show_user_data():
+    user_data = pd.read_csv("Data/user_data_diary.csv") # read the csv file
+    date = list(user_data.date)
+# create text-box
+    text_box = tk.Text(root,
+                       bg='white',
+                       fg='black',
+                       font='Arial 10',
+                       width=60)
+    text_box.place(x=20, y=57, relwidth=0.7, relheight=0.7)
+
+# re-structured code with ChatGPT https://chatx.de/
+    for d in date:
+        text_box.insert(tk.END, f"\nDate: {d}")
+        entry = list(user_data[user_data.date == d].diary_entry)  # get the diary entry for the current date.
+        # display the diary entry in the GUI window
+        text_box.insert(tk.END, f"\n{entry[0]}")
+
+# to delete information, mark it in the textbox and delete through the common keyboard button
+
+def create_diary_page(root):
+    global date, diary_entry
+    clear_widgets(root)
+    # place a title label
+    title_label = tk.Label(root, text='My Diary', font='Script 20', bg='black', fg='light green')
+    title_label.place(x=50, y=40)
+    # place a box for the date
+    date = tk.StringVar()
+    date = tk.Entry(root, width=10,
+                          textvar=date,
+                          font='Script 18',
+                          bg='white', fg='black')
+    date.place(x=45, y=125)
+    # place a label for the date
+    date_label = tk.Label(root,
+                          text='Date',
+                          font='Script 18',
+                          bg='black', fg='white')
+    date_label.place(x=45, y=90)
+    # place a label for the entry box
+    entry_label = tk.Label(root,
+                         text='Todays Entry:',
+                         font='Script 18',
+                         bg='black', fg='white')
+    entry_label.place(x=45, y=160)
+    # place the entry field for the diary entry
+    diary_entry = tk.Text(root,
+                        width=50,
+                        height=20,
+                        font='Arial 10',
+                        bg='white', fg='black')
+    diary_entry.place(x=47, y=200)
+
+
+    # place a button that will save the entry
+    save_button = tk.Button(root, text='SAVE', font='Arial 16', bg='black', fg='light green', command=store_user_data)
+    save_button.place(x=120, y=540)
+
+    # place a button that will show the previous entries
+    previous_entries_button = tk.Button(root, text='Previous entries', font='Arial 16', bg='black', fg='orange', command=lambda:create_display_entry_page(root))
+    previous_entries_button.place(x=190, y=540)
+
+    # place a button to return to the second page
+    return_button = tk.Button(root, text='back', font='script 16', bg='light green', fg='black', command=lambda:create_second_page(root))
+    return_button.place(x=23, y=543)
+
+
+# create the page where the diary entries can be displayed
+def create_display_entry_page(root):
+    clear_widgets(root)
+    title_label = tk.Label(root, text='Previous entries', font='Script 16', fg='black', bg='orange')
+    title_label.place(x=40, y=20)
+
+# place a button to return to the diary page
+    return_button = tk.Button(root, text='back', font='Script 16', bg='orange', fg='black', command=lambda:create_diary_page(root))
+    return_button.place(x=23, y=543)
+
+# create the field for the stored entries
+    previous_entries_field = tk.Entry(root, width=50, font='Arial 10', bg='white', fg='black')
+    previous_entries_field.pack()
+
+# display the entries
+    show_user_data()
+
+
+def create_todo_page(root): # https://techvidvan.com/tutorials/python-to-do-list/
+    clear_widgets(root)
+    # place a title label
+    Title_label = tk.Label(root, text='TO DO', font='Script 20', bg='black', fg='yellow')
+    Title_label.place(x=50, y=20)
+    # place a return button on that page
+    return_button = tk.Button(root, text='back', font='Script 16', bg='yellow', fg='black', command=lambda:create_second_page(root))
+    return_button.place(x=25, y=540)
+
+    # create a listbox for the tasks with a scroll-bar
+    listbox_task = Listbox(root, bg='black', fg='white', font='Helvetica 12', height=21, width=35)
+    scrollbar = Scrollbar(root, orient=VERTICAL, command=listbox_task.yview)  # https://techvidvan.com/tutorials/python-to-do-list/
+    scrollbar.place(x=394, y=70, height=385)
+    listbox_task.configure(yscrollcommand=scrollbar.set) # https://techvidvan.com/tutorials/python-to-do-list/
+    listbox_task.place(x=64, y=64)
+
+    # definition to add a new task to the To Do list # https://data-flair.training/python-to-do-list/
+    def entertask():
+        # window to take input
+        input_text=''
+        def add():
+            input_text = entry_task.get(1.0, 'end-1c')
+            if input_text == '':
+                tkinter.messagebox.showwarning(title='WARNING!', message='Please enter a task.')
+            else:
+                listbox_task.insert(END, input_text)
+                # close the pop-up window
+                root1.destroy()
+
+        root1=Tk()
+        root1.title('Add task')
+        entry_task=Text(root1, width=40, height=4)
+        entry_task.pack()
+        button_temp=tk.Button(root1, text='Add text', command=add)
+        button_temp.pack()
+        root1.mainloop()
+
+    # easier function to delete a task and to mark a task as completed
+    def deletetask():
+        # this definition allows the user to select a specific task and mark it as completed
+        selected = listbox_task.curselection()
+        listbox_task.delete(selected[0])
+
+    def markcompleted(): #https://data-flair.training/blogs/python-to-do-list/
+        marked=listbox_task.curselection()
+        temp=marked[0]
+
+        # store the entry of the selected item in a string
+        temp_marked=listbox_task.get(marked)
+        # update the checklist
+        temp_marked = temp_marked+'☑'
+        # delete it then insert it
+        listbox_task.delete(temp)
+        listbox_task.insert(temp, temp_marked)
+
+    # entry_button to add tasks
+    entry_button = tk.Button(root, text='Add task', width=20, command=entertask)
+    entry_button.place(x=415, y=190)
+
+    # button to delete a task
+    delete_button = tk.Button(root, text='Delete selected task', width=20, command=deletetask)
+    delete_button.place(x=415, y=220)
+
+    # button to mark the task as completed
+    mark_button = tk.Button(root, text='Mark as completed', width=20, command=markcompleted)
+    mark_button.place(x=415, y=250)
+
+
+
+# Focus Page
+def create_music_page(root): # FINISH THIS !!!!
+    clear_widgets(root)
+    # place a title label
+    Title_label = tk.Label(root, text='Focus with music', font='Script 20', bg='black', fg='orange')
+    Title_label.place(x=50, y=20)
+    # place a return button on that page
+    return_button = tk.Button(root, text='back', font='Script 16', bg='orange', fg='black', command=lambda:create_second_page(root))
+    return_button.place(x=30, y=540)
+    # create the directory box
+    directory = askdirectory()
+    os.chdir(directory)
+    song_list = os.listdir() # this gives out all of the songs in the folder
+    # create a list box that contains all the songs that can be selected
+    play_list = tk.Listbox(root,
+                           font='Arial 12',
+                           bg='white',
+                           fg='black',
+                           selectmode=tk.SINGLE)
+    # place the song title in the listbox
+    pos = 0
+    for song in song_list:
+        play_list.insert(pos, song)
+        pos += 1
+
+    # place a scrollbar at the side of the listbox
+    scrollbar = Scrollbar(root, orient=VERTICAL,
+                          command=play_list.yview)  # https://techvidvan.com/tutorials/python-to-do-list/
+    scrollbar.place(x=394, y=70, height=385)
+    play_list.configure(yscrollcommand=scrollbar.set)  # https://techvidvan.com/tutorials/python-to-do-list/
+    play_list.place(x=64, y=64)
+
+    # initialise the pygame library
+    pg.init()
+
+    # definition to play music when using the play_button
+    def play_music():
+        pg.mixer.music.load(play_list.get(tk.ACTIVE)) # loads the selected file
+        pg.mixer.music.play()
+
+    # definition to play a song selected from the list by the user
+    def play_on_selection():
+        play_music()
+        # reset the pause button if it is necessary
+        pause_button.configure(text='Pause',
+                               command=pause_music)
+
+    # definition to stop the music alltogether
+    def stop_music():
+        pg.mixer.music.stop()
+        # reset the pause button if it is necessary
+        pause_button.configure(text='Pause',
+                               command=pause_music)
+
+    # definition to pause the music
+    def pause_music():
+        pg.mixer.music.pause()
+        # configure the pause button to an unpause button
+        pause_button.configure(text='Unpause',
+                               command=unpause_music)
+
+    # definition to unpause music
+    def unpause_music():
+        pg.mixer.music.unpause()
+        # configure the unpause button to a pause button
+        unpause_button.configure(text='Pause',
+                                 command=pause_music)
+
+    # create the buttons for the GUI page
+    # create a play button
+    play_button = tk.Button(root, text='PLAY', height=3, font='Arial 12 bold', bg='green', highlightthickness=10,
+                            fg='black', command=play_music)
+    # create a stop button
+    stop_button = tk.Button(root, text='STOP', height=3, font='Arial 12 bold', bg='red', highlightthickness=10,
+                            fg='black', command=stop_music)
+    # create a pause button
+    pause_button = tk.Button(root, text='PAUSE', height=3, font='Arial 12 bold', bg='yellow', highlightthickness=10,
+                             fg='black', command=pause_music)
+    # create the unpause button
+    unpause_button = tk.Button(root, text='UNPAUSE', height=3, font= 'Arial 12 bold', bg='pink', highlightthickness=10,
+                               fg='black', command=unpause_music)
+
+    # place the name of the song
+    song_name = play_list.get(tk.ACTIVE)
+    song_label = tk.Label(root, font='Arial 12', textvariable=song_name)
+    song_label.pack()
+
+    # place the buttons
+    play_button.pack(fill='x')
+    stop_button.pack(fill='x')
+    pause_button.pack(fill='x')
+    play_list.pack(fill='both', expand='True')
+
+    # play music when selected
+    play_list.bind('<<ListboxSelect>>', play_on_selection)
+
+
+# Study Page
+def create_study_page(root):
+    clear_widgets(root)
+    # place a title label
+    Title_label = tk.Label(root, text='Study Buddy', font='Script 20', bg='black', fg='pink')
+    Title_label.place(x=50, y=20)
+    # place a return button on that page
+    return_button = tk.Button(root, text='back', font='Script 16', bg='pink', fg='black', command=lambda:create_second_page(root))
+    return_button.place(x=30, y=540)
+    # create a button that leads to the first study-tip website
+    study_tip1_button = tk.Button(root, text='Source 1', font='Arial 12', bg='pink', fg='black', command=lambda:callback('https://summer.harvard.edu/blog/top-10-study-tips-to-study-like-a-harvard-student/'))
+    study_tip1_button.place(x=30, y=200)
+    # create a button that will lead to the second study-tip website
+    study_tip2_button = tk.Button(root, text='Source 2', font='Arial 12', bg='pink', fg='black', command=lambda: callback('https://www.futurelearn.com/courses/improving-study-techniques'))
+    study_tip2_button.place(x=30, y=240)
+    # create a button that will lead to the third study website
+    study_tip3_button = tk.Button(root, text='Source 3', font='Arial 12', bg='pink', fg='black', command=lambda: callback('https://www.ox.ac.uk/students/news/2018-10-25-six-tips-studying-effectively'))
+    study_tip3_button.place(x=30, y=280)
+    # create the button for the fourth study website
+    study_tip4_button = tk.Button(root, text='Source 4', font='Arial 12', bg='pink', fg='black', command=lambda: callback('https://www.math.ucdavis.edu/resources/learning/math-study-tips'))
+    study_tip4_button.place(x=30, y=320)
+
+    # create a title label
+    website_field_label = tk.Label(root, text='Websites with study tips', font='Arial 12', bg='black', fg='white') # create the label for it
+    website_field_label.place(x=30, y=130)
+
+    # create a label for mental health websites
+    mental_health_website_label = tk.Label(root, text='Websites for mental health', font='Arial 12', bg='black', fg='white')
+    mental_health_website_label.place(x=220, y=130)
+    # create a button for the first mental-health website
+    mental_health_button_1 = tk.Button(root, text='Source 1', font='Arial 12', bg='Green', fg='black', command=lambda: callback('https://www.deutsche-depressionshilfe.de/krisentelefone'))
+    mental_health_button_1.place(x=270, y=200)
+    # create a button for the second mental health website
+    mental_health_button_2 = tk.Button(root, text='Source 2', font='Arial 12', bg='Green', fg='black', command=lambda: callback('https://www.barmer.de/gesundheit-verstehen/psyche/psychische-gesundheit'))
+    mental_health_button_2.place(x=270, y=240)
+    # create a button for the third mental health website
+    mental_health_button_3 = tk.Button(root, text='Mental Health Hotlines', font='Arial 12', bg='Green', fg='black', command=lambda: callback('https://www.therapyroute.com/article/suicide-hotlines-and-crisis-lines-in-germany'))
+    mental_health_button_3.place(x=270, y=280)
+    # create a button for the fourth mental health website
+    mental_health_button_4 = tk.Button(root, text='Immediate Help in Crisis', font='Arial 12', bg='Green', fg='black', command=lambda: callback('https://psychenet.de/de/hilfe-finden/schnelle-hilfe/soforthilfe.html'))
+    mental_health_button_4.place(x=270, y=320)
+
+    # create a button for a website for finding reliable literature online
+    study_button = tk.Button(root, text='Literature online', font='Arial 12', bg='gold', fg='black', command=lambda: callback('https://www.sweetsearch.com/'))
+    study_button.place(x=300, y=460)
+
+    # define a callback function to open hyperlinks
+    # https://www.tutorialspoint.com/how-to-create-a-hyperlink-with-a-label-in-tkinter
+    def callback(url):
+            webbrowser.open_new_tab(url)
+        # create the field for link 1
+            link_1 = tk.Text(root, font='Arial 12', fg='white', text='https://summer.harvard.edu/blog/top-10-study-tips-to-study-like-a-harvard-student/')
+            link_1.place(x=350, y=90)
+        # call link_1
+            link_1.bind('<Button-1>', lambda e: callback('https://summer.harvard.edu/blog/top-10-study-tips-to-study-like-a-harvard-student/'))
+            callback('https://summer.harvard.edu/blog/top-10-study-tips-to-study-like-a-harvard-student/')
+        # create the field for link 2
+            link_2 = tk.Text(root, font='Arial 12', fg='white', text='https://www.futurelearn.com/courses/improving-study-techniques')
+            link_2.place(x=390, y=90)
+        # call link 2
+            link_2.bind('<Button-1>', lambda e: callback('https://www.futurelearn.com/courses/improving-study-techmniques'))
+            callback('https://www.futurelearn.com/courses/improving-study-techniques')
+        # create the field for link 3
+            link_3 = tk.Text(root, font='Arial 12', fg='white', text='https://www.ox.ac.uk/students/news/2018-10-25-six-tips-studying-effectively')
+            link_3.place(x=400, y=90)
+        # call link 3
+            link_3.bind('<Button-1>', lambda e: callback('https://www.ox.ac.uk/students/news/2018-10-25-six-tips-studying-effectively'))
+            callback('https://www.ox.ac.uk/students/news/2018-10-25-sic-tips-studying-effectively')
+        # create the field for link 4
+            link_4 = tk.Text(root, font='Arial 12', fg='white', text='https://www.math.ucdavis.edu/resources/learning/math-study-tips')
+            link_4.place(x=410, y=90)
+        # call link 4
+            link_4.bind('<Button-1>', lambda e: callback('https://www.math.ucdavis-edu/resources/learning/math-study-tips'))
+            callback('https://www.math.ucdavis-edu/resources/learning/math-study-tips')
+
+
+
+# Eating Tracker Page
+def create_eating_tracker_page(root): # FINISH THIS !!!!
+    clear_widgets(root)
+    # place a title label
+    Title_label = tk.Label(root, text='Food Tracker', font='Script 20', bg='black', fg='white')
+    Title_label.place(x=50, y=20)
+    # place a return button  on that page
+    return_button = tk.Button(root, text='back', font='Script 16', bg='white', fg='black', command=lambda:create_second_page(root))
+    return_button.place(x=30, y=540)
+    # create an entry field for the date
+    date_entry_field = tk.Entry(root, font='Arial 12', fg='black', bg='white')
+    date_entry_field.place(x=70, y=80, width=90, height=20)
+    # create a label for the date field
+    date_label = tk.Label(root, text='Date:', font='Script 14', fg='white', bg='black')
+    date_label.place(x=25, y=80)
+    # create entry fields for the meals
+    # meal 1
+    meal_one_label = tk.Label(root, text='Meal 1:', font='Script 16', bg='black', fg='white')
+    meal_one_label.place(x=30, y=200)
+    meal_one_entry_field = tk.Entry(root, font='Arial 12', fg='white', bg='black')
+    meal_one_entry_field.place(x=85, y=200, width=200, height=60)
+    # meal 2
+    meal_two_label = tk.Label(root, text='Meal 2:', font='Script 16', bg='black', fg='white')
+    meal_two_label.place(x=30, y=300)
+    meal_two_entry_field = tk.Entry(root, font='Arial 12', fg='white', bg='black')
+    meal_two_entry_field.place(x=85, y=300, width=200, height=60)
+    # meal 3
+    meal_three_label = tk.Label(root, text='Meal 3:', font='Script 16', bg='black', fg='white')
+    meal_three_label.place(x=30, y=400)
+    meal_three_entry_field = tk.Entry(root, font='Arial 12', fg='white', bg='black')
+    meal_three_entry_field.place(x=85, y=400, width=200, height=60)
+    # snacks
+    snacks_label = tk.Label(root, text='Snacks: ', font='Script 16', bg='black', fg='white')
+    snacks_label.place(x=60, y=30)
+    snacks_entry_field = tk.Entry(root, font='Arial 12', fg='white', bg='black')
+    snacks_entry_field.place(x=60, y=35)
+    # drink
+    drinks_label = tk.Label(root, text='Drinks: ', font='Script 16', bg='black', fg='white')
+    drinks_label.place(x=60, y=50)
+    drinks_entry_field = tk.Entry(root, font='Arial 12', bg='black', fg='white')
+    drinks_entry_field.place(x=60, y=55)
+
+    # save the entries to food.csv
+    def store_food_diary():
+        food_diary = {
+            'date': date_entry_field.get(),
+            'meal_one': meal_one_entry_field.get(),
+            'meal_two': meal_two_entry_field.get(),
+            'meal_three': meal_three_entry_field.get(),
+            'snacks': snacks_entry_field.get(),
+            'drinks': drinks_entry_field.get()
+        }
+        food_diary_df = pd.DataFrame([food_diary])
+        food_diary_df.to_csv('Data/food.csv', index=False, mode='a', header=False)
+
+    # button to activate the definition
+    save_food_button = tk.Button(root, text='SAVE', font='Arial 14', bg='white', fg='black', command=store_food_diary)
+    save_food_button.place(x=300, y=540)
+
+    # place a button that will create the page that will display the food the user enters
+    display_food_button = tk.Button(root, text='My Food Diary', font='Arial 14', bg='white', fg='black', command=create_display_food_page())
+    display_food_button.place(x=440, y=540)
+
+
+def create_display_food_page():
+        clear_widgets(root)
+    # place a label to describe the page
+        title_label = tk.Label(root, text='Food Record', font='Script 16', bg='black', fg='white')
+        title_label.place(x=50, y=25)
+
+    # place a button to return to the previous page
+        return_button = tk.Button(root, text='back', font='Script 16', bg='white', fg='black', command=lambda:create_eating_tracker_page(root))
+        return_button.place(x=30, y=540)
+
+    # display the food diary
+def display_food_diary():
+    food_diary = pd.read_csv('Data/food.csv')
+    date=list(food_diary.date_entry)
+    # create a textfield to display the food entries
+    text_field = tk.Text(root,
+                         bg='white',
+                         fg='black')
+    text_field.place(x=20, y=80, relwidth=50, relheight=50)
+    # code to place the entries in the textfield
+    for d in date:
+        text_field.insert(tk.END, f'\n date:{d}')
+        entry = list(food_diary[food_diary.get()])
+        text_field.insert(tk.END, f'\n{entry[0]}')
+
+display_food_diary()
+
+
+show_user_data()
+create_titlepage(root)
+root.mainloop()
