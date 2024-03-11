@@ -1,2 +1,2 @@
-This is the repository where I will hand in my Tech Basics 2 proejct, including the code, the csv files and the report.
+This is the repository where I will store my tech basics project before handing in
 # new_repository
